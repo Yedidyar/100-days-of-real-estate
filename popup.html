@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Real Estate Viewer</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+      }
+
+      body {
+        width: 400px;
+        min-height: 600px;
+        background-color: #f5f5f5;
+        padding: 16px;
+      }
+
+      .property-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 16px;
+        overflow: hidden;
+        transition: transform 0.2s;
+      }
+
+      .property-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .property-image {
+        width: 100%;
+        height: 200px;
+        background-size: cover;
+        background-position: center;
+        background-color: #e0e0e0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .property-content {
+        padding: 16px;
+      }
+
+      .price {
+        font-size: 24px;
+        font-weight: bold;
+        color: #2196f3;
+        margin-bottom: 8px;
+      }
+
+      .address {
+        font-size: 16px;
+        color: #333;
+        margin-bottom: 12px;
+      }
+
+      .details {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .detail-item {
+        text-align: center;
+        padding: 8px;
+        background: #f5f5f5;
+        border-radius: 8px;
+      }
+
+      .detail-label {
+        font-size: 12px;
+        color: #666;
+      }
+
+      .detail-value {
+        font-size: 14px;
+        font-weight: bold;
+        color: #333;
+      }
+
+      .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .tag {
+        background: #e3f2fd;
+        color: #1976d2;
+        padding: 4px 12px;
+        border-radius: 16px;
+        font-size: 12px;
+      }
+
+      .no-properties {
+        text-align: center;
+        padding: 32px;
+        color: #666;
+      }
+
+      .search-bar {
+        margin-bottom: 16px;
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <input
+      type="text"
+      class="search-bar"
+      placeholder="חיפוש לפי עיר, שכונה או רחוב..."
+    />
+    <div id="properties-container"></div>
+
+    <script>
+      function formatPrice(price) {
+        return new Intl.NumberFormat("he-IL", {
+          style: "currency",
+          currency: "ILS",
+          maximumFractionDigits: 0,
+        }).format(price);
+      }
+
+      function createPropertyCard(property) {
+        return `
+                <div class="property-card">
+                    <div class="property-image" style="background-image: url('${
+                      property.metaData?.coverImage ||
+                      "/api/placeholder/400/200"
+                    }')">
+                        ${
+                          !property.metaData?.coverImage
+                            ? "<span>אין תמונה</span>"
+                            : ""
+                        }
+                    </div>
+                    <div class="property-content">
+                        <div class="price">${formatPrice(property.price)}</div>
+                        <div class="address">
+                            ${property.address.street.text} ${
+          property.address.house.number
+        }, 
+                            ${property.address.neighborhood.text}, 
+                            ${property.address.city.text}
+                        </div>
+                        <div class="details">
+                            <div class="detail-item">
+                                <div class="detail-label">חדרים</div>
+                                <div class="detail-value">${
+                                  property.additionalDetails.roomsCount
+                                }</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">מ"ר</div>
+                                <div class="detail-value">${
+                                  property.additionalDetails.squareMeter
+                                }</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">קומה</div>
+                                <div class="detail-value">${
+                                  property.address.house.floor
+                                }</div>
+                            </div>
+                        </div>
+                        <div class="tags">
+                            ${property.tags
+                              .map(
+                                (tag) => `<span class="tag">${tag.name}</span>`
+                              )
+                              .join("")}
+                        </div>
+                    </div>
+                </div>
+            `;
+      }
+
+      function renderProperties(properties) {
+        const container = document.getElementById("properties-container");
+        if (!properties.length) {
+          container.innerHTML =
+            '<div class="no-properties">לא נמצאו נכסים</div>';
+          return;
+        }
+
+        container.innerHTML = properties
+          .map((property) => createPropertyCard(property))
+          .join("");
+      }
+
+      // Search functionality
+      document.querySelector(".search-bar").addEventListener("input", (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const filteredProperties = properties.filter((property) => {
+          const searchString =
+            `${property.address.city.text} ${property.address.neighborhood.text} ${property.address.street.text}`.toLowerCase();
+          return searchString.includes(searchTerm);
+        });
+        renderProperties(filteredProperties);
+      });
+
+      // Initial render
+      renderProperties(properties);
+    </script>
+  </body>
+</html>

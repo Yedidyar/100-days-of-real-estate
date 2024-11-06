@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Next.js Data Extractor",
+  "version": "1.0",
+  "description": "Extract __NEXT_DATA__ JSON data from Next.js pages",
+  "permissions": ["activeTab", "scripting"],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ]
+}
