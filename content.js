@@ -12,8 +12,16 @@ function extractNextData() {
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.message === "get_next_data") {
     const nextData = extractNextData();
+    const fullTitleText =
+      nextData.props.pageProps.dehydratedState.queries[0].state.data[0]
+        .full_title_text;
 
-    sendResponse({ data: nextData.props.pageProps.feed.private });
+    sendResponse({
+      data: {
+        feed: nextData.props.pageProps.feed.private,
+        cityName: fullTitleText,
+      },
+    });
   }
 });
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {

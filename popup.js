@@ -48,13 +48,6 @@ function createPropertyCard(property) {
                                 }</div>
                             </div>
                         </div>
-                        <div class="tags">
-                            ${property.tags
-                              .map(
-                                (tag) => `<span class="tag">${tag.name}</span>`
-                              )
-                              .join("")}
-                        </div>
                     </div>
                 </div>
             `;
@@ -87,9 +80,11 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     tabs[0].id,
     { message: "get_next_data" },
     (response) => {
-      const data = response.data;
+      const { feed, cityName } = response.data;
 
-      renderProperties(data);
+      renderProperties(
+        feed.filter((property) => property.address.city.text === cityName)
+      );
 
       // Now call get_links after get_next_data has completed
       chrome.tabs.sendMessage(
@@ -101,12 +96,11 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
 
             const propertyCards = document.querySelectorAll(".property-card");
             propertyCards.forEach((card, i) => {
-              const link = links[data[i].token];
+              const link = links[feed[i].token];
               card.addEventListener("click", () => {
                 chrome.tabs.create({ url: link });
               });
             });
-            console.log(data);
           } else {
             console.log("No data received");
           }
