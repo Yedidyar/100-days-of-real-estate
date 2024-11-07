@@ -70,14 +70,6 @@ function renderProperties(properties) {
   container.innerHTML = properties
     .map((property) => createPropertyCard(property))
     .join("");
-  document.querySelectorAll(".property-card").forEach((card, i) => {
-    card.addEventListener("click", function () {
-      const url = linkMap.get(data[i].token);
-      if (url) {
-        chrome.tabs.create({ url });
-      }
-    });
-  });
 }
 
 document.querySelector(".search-bar").addEventListener("input", (e) => {
@@ -96,21 +88,30 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     { message: "get_next_data" },
     (response) => {
       const data = response.data;
-      const links = Array.from(
-        document.querySelectorAll('[data-testid="item-basic"] a')
-      );
-
-      const linkMap = new Map();
-      links.forEach((link, i) =>
-        linkMap.set(
-          links[i].href.split("https://")[1].split("/")[3].split("?")[0],
-          link.href
-        )
-      );
-
-      console.log(data);
 
       renderProperties(data);
+
+      // Now call get_links after get_next_data has completed
+      chrome.tabs.sendMessage(
+        tabs[0].id,
+        { message: "get_links" },
+        (response) => {
+          if (response && response.data) {
+            const links = response.data;
+
+            const propertyCards = document.querySelectorAll(".property-card");
+            propertyCards.forEach((card, i) => {
+              const link = links[data[i].token];
+              card.addEventListener("click", () => {
+                chrome.tabs.create({ url: link });
+              });
+            });
+            console.log(data);
+          } else {
+            console.log("No data received");
+          }
+        }
+      );
     }
   );
 });
