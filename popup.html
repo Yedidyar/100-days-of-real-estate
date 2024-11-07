@@ -4,6 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Real Estate Viewer</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+
     <style>
       * {
         margin: 0;
@@ -110,21 +115,39 @@
       }
 
       .search-bar {
-        margin-bottom: 16px;
         width: 100%;
         padding: 12px;
         border: 1px solid #ddd;
         border-radius: 8px;
         font-size: 14px;
       }
+
+      .search-bar-container {
+        display: flex;
+        gap: 8px;
+      }
+
+      .search-bar-btn {
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
-    <input
-      type="text"
-      class="search-bar"
-      placeholder="חיפוש לפי עיר, שכונה או רחוב..."
-    />
+    <form>
+      <div class="search-bar-container">
+        <input
+          type="text"
+          class="search-bar"
+          placeholder="הזן את שם העיר במדויק"
+        />
+        <button class="search-bar-btn">
+          <i class="fas fa-search search-icon"></i>
+        </button>
+      </div>
+    </form>
     <div id="properties-container"></div>
     <script src="popup.js"></script>
   </body>
