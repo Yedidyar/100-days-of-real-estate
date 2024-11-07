@@ -65,47 +65,51 @@ function renderProperties(properties) {
     .join("");
 }
 
-document.querySelector(".search-bar").addEventListener("input", (e) => {
-  const searchTerm = e.target.value.toLowerCase();
-  const filteredProperties = properties.filter((property) => {
-    const searchString =
-      `${property.address.city.text} ${property.address.neighborhood?.text} ${property.address.street.text}`.toLowerCase();
-    return searchString.includes(searchTerm);
-  });
-  renderProperties(filteredProperties);
-});
+document.getElementById("city-form").addEventListener("submit", (e) => {
+  e.preventDefault();
 
-chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-  chrome.tabs.sendMessage(
-    tabs[0].id,
-    { message: "get_next_data" },
-    (response) => {
-      const { feed, cityName } = response.data;
+  const state = {
+    properties: null,
+    links: null,
+  };
 
-      renderProperties(
-        feed.filter((property) => property.address.city.text === cityName)
-      );
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.sendMessage(
+      tabs[0].id,
+      { message: "get_next_data" },
+      (response) => {
+        const { feed } = response.data;
 
-      // Now call get_links after get_next_data has completed
-      chrome.tabs.sendMessage(
-        tabs[0].id,
-        { message: "get_links" },
-        (response) => {
-          if (response && response.data) {
-            const links = response.data;
+        state.properties = feed;
 
-            const propertyCards = document.querySelectorAll(".property-card");
-            propertyCards.forEach((card, i) => {
-              const link = links[feed[i].token];
-              card.addEventListener("click", () => {
-                chrome.tabs.create({ url: link });
+        chrome.tabs.sendMessage(
+          tabs[0].id,
+          { message: "get_links" },
+          (response) => {
+            if (response && response.data) {
+              state.links = response.data;
+
+              const cityName = document.getElementById("city-input").value;
+
+              renderProperties(
+                state.properties.filter(
+                  (property) => property.address.city.text === cityName
+                )
+              );
+
+              const propertyCards = document.querySelectorAll(".property-card");
+              propertyCards.forEach((card, i) => {
+                const link = state.links[feed[i].token];
+                card.addEventListener("click", () => {
+                  chrome.tabs.create({ url: link });
+                });
               });
-            });
-          } else {
-            console.log("No data received");
+            } else {
+              console.log("No data received");
+            }
           }
-        }
-      );
-    }
-  );
+        );
+      }
+    );
+  });
 });
